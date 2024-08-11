@@ -3,6 +3,8 @@ package com.dineshkarthik.springboot_crud_example.Controller;
 import com.dineshkarthik.springboot_crud_example.Model.Product;
 import com.dineshkarthik.springboot_crud_example.Service.ProductService;
 import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,7 @@ import java.util.List;
 @RequestMapping("/crudOperations")
 public class ProductController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
 
     @Autowired
     private ProductService service;
@@ -33,6 +36,7 @@ public class ProductController {
     @PostMapping("/addProduct")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Product addProduct(@RequestBody Product product){
+        logger.info("Add Product endpoint called with data: {}", product);
         return service.saveProduct(product);
     }
 
@@ -73,23 +77,5 @@ public class ProductController {
         return service.deleteProduct(id);
     }
 
-//    @ExceptionHandler(EntityNotFoundException.class)
-//    public ResponseEntity<String> handleEntityNotFoundException(EntityNotFoundException e) {
-//        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-//    }
-//    @ExceptionHandler(IllegalArgumentException.class)
-//    public ResponseEntity<String> handleEntityNotFoundException(IllegalArgumentException e) {
-//        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-//    }
-//    @ExceptionHandler(HttpMessageNotReadableException.class)
-//    public ResponseEntity<String> handleEntityNotFoundException(HttpMessageNotReadableException e) {
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("HttpMessageNotReadableException: " + e.getMessage());
-//    }
-
-
-//    @ExceptionHandler(NullPointerException.class)
-//    public ResponseEntity<String> handleNullPointerException(NullPointerException ex) {
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("NullPointerException occurred: " + ex.getMessage());
-//    }
 
 }

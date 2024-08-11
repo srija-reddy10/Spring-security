@@ -1,46 +1,48 @@
 package com.dineshkarthik.springboot_crud_example.Service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Service
-public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
-//    @Override
-//    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-//        OAuth2User oAuth2User = super.loadUser(userRequest);
-//        Map<String, Object> attributes = oAuth2User.getAttributes();
-//
-//        // Assign authorities based on OAuth2 provider attributes (e.g., GitHub, Google, etc.)
-//        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
-//
-//        return new DefaultOAuth2User(authorities, attributes, "id"); // Use the correct attribute for username/id
-//    }
-@Override
-public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-    OAuth2User oAuth2User = super.loadUser(userRequest);
-    Map<String, Object> attributes = oAuth2User.getAttributes();
+    private final DefaultOAuth2UserService delegate = new DefaultOAuth2UserService();
+    private static final Logger logger = LoggerFactory.getLogger(CustomOAuth2UserService.class);
 
-    List<GrantedAuthority> authorities = new ArrayList<>();
-    authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+    @Override
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) {
+        OAuth2User oAuth2User = delegate.loadUser(userRequest);
 
-    // Example condition to add ROLE_ADMIN
-    if ("admin".equals(attributes.get("login"))) { // Replace "login" with the appropriate attribute
-        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        Set<GrantedAuthority> authorities = new HashSet<>(oAuth2User.getAuthorities());
+
+        // GitHub user attributes
+        Map<String, Object> attributes = oAuth2User.getAttributes();
+        String login = (String) attributes.get("login");
+
+        // Log the GitHub username
+        logger.info("GitHub login: " + login);
+
+        // Example: Assigning ROLE_ADMIN to a specific GitHub user
+        if ("srija-reddy10".equalsIgnoreCase(login)) { // Replace with your GitHub username
+            authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+            logger.info("Assigned ROLE_ADMIN to: " + login);
+        } else {
+            authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+            logger.info("Assigned ROLE_USER to: " + login);
+        }
+
+        return new DefaultOAuth2User(authorities, attributes, "login");
     }
-
-    return new DefaultOAuth2User(authorities, attributes, "id"); // Use the correct attribute for username/id
 }
-}
-
